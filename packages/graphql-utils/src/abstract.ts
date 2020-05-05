@@ -1,9 +1,13 @@
 import type {
   Option,
-  Some,
   MapReturnType,
   InferrableAny,
+  OverrideProps,
+  Callable,
+  None,
+  Some,
 } from '@cometjs/core';
+import { isNone } from '@cometjs/core';
 import { mapToValue } from '@cometjs/core';
 
 /**
@@ -33,7 +37,7 @@ export function mapAbstractType<
   TSubtype extends SubtypeName<TAbstract>,
   TSubtypeMatcher extends {
     [TKey in TSubtype]: (
-      | ((fragment: Extract<TAbstract, GraphQLAbstractType<TKey>>) => any)
+      | ((match: Extract<TAbstract, GraphQLAbstractType<TKey>>) => any)
       | InferrableAny
     );
   },
@@ -41,11 +45,15 @@ export function mapAbstractType<
   object: TAbstract,
   subtypeMatcher: TSubtypeMatcher,
 ): MapReturnType<TSubtypeMatcher> {
-  if (!object.__typename) {
-    throw new Error('The given fragment doesn\'t have __typename property');
+  if (typeof object !== 'object') {
+    throw new Error('The given value is not an object');
   }
-  const map = subtypeMatcher[object.__typename as TSubtype];
-  return mapToValue(map, object as any) as MapReturnType<TSubtypeMatcher>;
+  if (!object.__typename) {
+    throw new Error('The given object doesn\'t have `__typename` property');
+  }
+  const mapFn = subtypeMatcher[object.__typename as TSubtype];
+  // eslint-disable-next-line
+  return mapToValue(mapFn, object as any) as MapReturnType<TSubtypeMatcher>;
 }
 export const mapUnion = mapAbstractType;
 export const mapInterface = mapAbstractType;
@@ -64,35 +72,44 @@ export function mapAbstractTypeWithDefault<
   TSubtype extends SubtypeName<TAbstract>,
   TSubtypeMatcher extends {
     [TKey in TSubtype]?: (
-      | ((union: Extract<TAbstract, GraphQLAbstractType<TKey>>) => any)
+      | ((match: Extract<TAbstract, GraphQLAbstractType<TKey>>) => any)
       | InferrableAny
     );
   },
-  RDefault,
->(
-  object: TAbstract,
-  subtypeMatcher: (
-    & TSubtypeMatcher
-    & {
-      _: ((object: TAbstract) => RDefault) | RDefault,
-    }
+  RDefault extends (
+    | ((object: Option<TAbstract>) => any)
+    | InferrableAny
   ),
+>(
+  object: Option<TAbstract>,
+  subtypeMatcher: TSubtypeMatcher & {
+    _: RDefault,
+  },
 ): (
-  | Some<MapReturnType<TSubtypeMatcher>>
-  | RDefault
+  | MapReturnType<TSubtypeMatcher>
+  | RDefault extends infer T
+    ? T extends Callable
+    ? ReturnType<T>
+    : T
+    : never
 ) {
+  const defaultMapFn = subtypeMatcher['_'];
+  if (isNone(object)) {
+    return mapToValue(defaultMapFn, object);
+  }
+  if (typeof object !== 'object') {
+    throw new Error('The given value is not an object');
+  }
   if (!object.__typename) {
-    throw new Error('The given fragment doesn\'t have __typename property');
+    throw new Error('The given object doesn\'t have `__typename` property');
   }
-  const defaultMap = subtypeMatcher['_'];
-  const map = subtypeMatcher[object.__typename as TSubtype];
-  if (!map) {
-    // fallback to default when the object has no matched map
-    return mapToValue(defaultMap, object);
+  const mapFn = subtypeMatcher[object.__typename as TSubtype];
+  if (mapFn) {
+    // eslint-disable-next-line
+    return mapToValue(mapFn, object as any)
+  } else {
+    return mapToValue(defaultMapFn, object);
   }
-  const result = mapToValue(map, object as any) as Option<MapReturnType<TSubtypeMatcher>>;
-  // fallback to default when the mapped result is none
-  return result ?? mapToValue(defaultMap, object);
 }
 export const mapUnionWithDefault = mapAbstractTypeWithDefault;
 export const mapInterfaceWithDefault = mapAbstractTypeWithDefault;

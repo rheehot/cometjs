@@ -1,3 +1,4 @@
+import type { Option } from '@cometjs/core';
 import { mapUnion, mapUnionWithDefault } from '../src/abstract';
 
 type Scalars = {
@@ -24,7 +25,7 @@ type User = Node & {
   username: Scalars['String'],
   email: Scalars['String'],
   role: Role,
-  nickname?: Scalars['String'],
+  nickname?: Scalars['String'] | undefined,
 };
 
 type Chat = Node & {
@@ -45,9 +46,11 @@ type ChatMessage = Node & {
 type SearchResult = User | Chat | ChatMessage;
 
 const result = {} as SearchResult;
+const optionalResult = null as Option<SearchResult>;
 
 // $ExpectType ChatMessage[]
 const a = mapUnion(result, {
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
   User: [] as ChatMessage[],
   Chat: result => result.messages,
   ChatMessage: result => [result],
@@ -61,6 +64,27 @@ const b = mapUnionWithDefault(result, {
 
 // $ExpectType string
 const c = mapUnionWithDefault(result, {
-  User: result => result.nickname,
+  User: result => result.nickname ?? 'Anonymous',
   _: 'Anonymous',
+});
+
+// $ExpectType string | null
+const d = mapUnionWithDefault(optionalResult, {
+  User: user => user.id,
+  Chat: chat => chat.id,
+  ChatMessage: message => message.id,
+  _: () => null,
+});
+
+// $ExpectType "User" | "Chat" | "ChatMessage"
+const e = mapUnion(result, {
+  User: user => user.__typename,
+  Chat: chat => chat.__typename,
+  ChatMessage: message => message.__typename,
+});
+
+// $ExpectType "User" | "NonUser"
+const f = mapUnionWithDefault(optionalResult, {
+  User: user => user.__typename,
+  _: 'NonUser' as const,
 });

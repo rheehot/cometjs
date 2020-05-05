@@ -1508,6 +1508,7 @@ __metadata:
     concurrently: ^5.1.0
     core-js: ^3.6.4
     typescript: ^3.8.3
+    utility-types: ^3.10.0
   languageName: unknown
   linkType: soft
 
@@ -6892,6 +6893,13 @@ typescript@^3.8.3:
   version: 1.0.2
   resolution: "util-deprecate@npm:1.0.2"
   checksum: 3/73c2b1cf0210ccac300645384d8443cabbd93194117b2dc1b3bae8d8279ad39aedac857e020c4ea505e96a1045059c7359db3df6a9df0be6b8584166c9d61dc9
+  languageName: node
+  linkType: hard
+
+"utility-types@npm:^3.10.0":
+  version: 3.10.0
+  resolution: "utility-types@npm:3.10.0"
+  checksum: 3/0d2add8ad7057883548a328076dd5eaa8ccb3660df053645fec332253f047fa0882da766dfa676c6a530f6a80023f1f519e1bc3f90088c4fcede303c33de0e4a
   languageName: node
   linkType: hard
 

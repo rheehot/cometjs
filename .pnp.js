@@ -2476,7 +2476,8 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@cometjs/core", "workspace:packages/core"],
             ["concurrently", "npm:5.1.0"],
             ["core-js", "npm:3.6.4"],
-            ["typescript", "patch:typescript@npm%3A3.8.3#builtin<compat/typescript>::version=3.8.3&hash=8cac75"]
+            ["typescript", "patch:typescript@npm%3A3.8.3#builtin<compat/typescript>::version=3.8.3&hash=8cac75"],
+            ["utility-types", "npm:3.10.0"]
           ],
           "linkType": "SOFT",
         }]
@@ -8646,6 +8647,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/util-deprecate-npm-1.0.2-e3fe1a219c-3.zip/node_modules/util-deprecate/",
           "packageDependencies": [
             ["util-deprecate", "npm:1.0.2"]
+          ],
+          "linkType": "HARD",
+        }]
+      ]],
+      ["utility-types", [
+        ["npm:3.10.0", {
+          "packageLocation": "./.yarn/cache/utility-types-npm-3.10.0-747e7c6549-3.zip/node_modules/utility-types/",
+          "packageDependencies": [
+            ["utility-types", "npm:3.10.0"]
           ],
           "linkType": "HARD",
         }]
